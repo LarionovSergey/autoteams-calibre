@@ -287,6 +287,32 @@
     seen.observe(root);
   }
 
+  /* ---------- Полоса «в цифрах»: числа набегают при появлении ---------- */
+  function initStats() {
+    var root = document.querySelector('[data-stats]');
+    if (!root) { return; }
+    if (reduceMotion || !('IntersectionObserver' in window)) { root.classList.add('is-static'); return; }
+    var nums = root.querySelectorAll('[data-count]');
+    nums.forEach(function (n) { n.textContent = '0' + (n.getAttribute('data-suffix') || ''); });
+    var io = new IntersectionObserver(function (entries) {
+      if (!entries[0].isIntersecting) { return; }
+      io.disconnect();
+      root.classList.add('is-run');
+      var start = 0;
+      function frame(ts) {
+        if (!start) { start = ts; }
+        nums.forEach(function (n, i) {
+          var dur = 1500 + i * 250, k = Math.min(1, Math.max(0, (ts - start - i * 150) / dur));
+          var e = 1 - Math.pow(1 - k, 3);
+          n.textContent = Math.round(parseInt(n.getAttribute('data-count'), 10) * e) + (n.getAttribute('data-suffix') || '');
+        });
+        if (ts - start < 1500 + (nums.length - 1) * 400 + 100) { requestAnimationFrame(frame); }
+      }
+      requestAnimationFrame(frame);
+    }, { threshold: 0.5 });
+    io.observe(root);
+  }
+
   /* ---------- Карусель «Последние работы» ---------- */
   function initCarousel() {
     var root = document.querySelector('[data-carousel]');
@@ -531,5 +557,6 @@
   initToTop();
   initMap();
   initFlip();
+  initStats();
   initCarousel();
 })();

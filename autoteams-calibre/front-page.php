@@ -180,6 +180,22 @@ foreach ( $services as $s ) {
 	</div>
 </section>
 
+<?php
+$makes_n = (int) wp_count_terms( array( 'taxonomy' => 'car_make', 'hide_empty' => true ) );
+$stats   = array(
+	array( 1700, '+', 'выполненных работ' ),
+	array( max( 1, (int) wp_date( 'Y' ) - 2017 ), '', 'лет в деле' ),
+);
+if ( $makes_n > 0 ) { $stats[] = array( $makes_n, '', 'марок авто в наших работах' ); }
+?>
+<section class="stats" aria-label="Автотеамс в цифрах" data-stats>
+	<ul>
+		<?php foreach ( $stats as $st ) : ?>
+			<li><b data-count="<?php echo (int) $st[0]; ?>" data-suffix="<?php echo esc_attr( $st[1] ); ?>"><?php echo (int) $st[0] . esc_html( $st[1] ); ?></b><span><?php echo esc_html( $st[2] ); ?></span></li>
+		<?php endforeach; ?>
+	</ul>
+</section>
+
 <section class="section" aria-labelledby="steps-title">
 	<div class="wrap">
 		<div class="section-head"><h2 id="steps-title">Как проходит работа</h2></div>
