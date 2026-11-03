@@ -16,6 +16,7 @@ function at_defaults() {
 		'vk'         => 'https://vk.ru/chiptuning24rus',
 		'facebook'   => 'https://www.facebook.com/share/1EpG9soemt/',
 		'map'        => '',
+		'map_org'    => '93333581437', // номер организации в Яндекс Картах: кнопка «Построить маршрут» открывает карточку
 		'map_ll'     => '92.957069,56.046344', // долгота,широта метки на карте (ул. С. Лазо, 12Д, чуть выше и левее значков PowerCarSystems и Автотеамс)
 		'privacy'    => '',
 		'hero_title' => 'Чип-тюнинг в Красноярске',

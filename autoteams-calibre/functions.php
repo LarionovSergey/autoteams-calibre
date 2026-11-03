@@ -4,7 +4,7 @@
  */
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'AT_VER', '1.0.19' );
+define( 'AT_VER', '1.0.20' );
 
 require get_template_directory() . '/inc/defaults.php';
 require get_template_directory() . '/inc/cpt.php';
@@ -286,6 +286,8 @@ function at_map_src() {
 
 /** Ссылка «Построить маршрут» в Яндекс.Картах. */
 function at_route_url() {
+	$org = preg_replace( '/\D/', '', (string) at_opt( 'map_org' ) );
+	if ( $org ) { return 'https://yandex.ru/maps/org/avtoteams/' . $org . '/'; }
 	$ll = preg_replace( '/[^0-9.,-]/', '', (string) at_opt( 'map_ll' ) );
 	$p  = explode( ',', $ll );
 	if ( 2 !== count( $p ) ) { return ''; }
