@@ -4,7 +4,7 @@
  */
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'AT_VER', '1.0.20' );
+define( 'AT_VER', '1.0.21' );
 
 require get_template_directory() . '/inc/defaults.php';
 require get_template_directory() . '/inc/cpt.php';
@@ -281,6 +281,10 @@ function at_map_src() {
 	if ( '' !== $custom ) { return $custom; }
 	$ll = preg_replace( '/[^0-9.,-]/', '', (string) at_opt( 'map_ll' ) );
 	if ( ! preg_match( '/^-?\d+(\.\d+)?,-?\d+(\.\d+)?$/', $ll ) ) { return ''; }
+	$org = preg_replace( '/\D/', '', (string) at_opt( 'map_org' ) );
+	if ( $org ) { // виджет с карточкой организации (рейтинг, фото, отзывы)
+		return 'https://yandex.ru/map-widget/v1/?ll=' . rawurlencode( $ll ) . '&mode=search&oid=' . $org . '&ol=biz&z=16';
+	}
 	return 'https://yandex.ru/map-widget/v1/?ll=' . rawurlencode( $ll ) . '&z=16&pt=' . rawurlencode( $ll . ',pm2ylm' );
 }
 
