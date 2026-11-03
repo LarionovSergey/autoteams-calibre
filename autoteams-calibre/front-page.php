@@ -47,7 +47,9 @@ foreach ( $services as $s ) {
 			</div>
 		</div>
 
-		<figure class="map" data-map data-min="<?php echo esc_attr( $map['min'] ); ?>" data-max="<?php echo esc_attr( $map['max'] ); ?>">
+		<div class="flip" data-flip>
+		<div class="flip-inner">
+		<figure class="map flip-face flip-front" data-map data-min="<?php echo esc_attr( $map['min'] ); ?>" data-max="<?php echo esc_attr( $map['max'] ); ?>">
 			<figcaption>
 				<strong>Так выглядит работа с блоком управления</strong>
 				<span>Пример карты угла опережения зажигания, значения условные</span>
@@ -78,6 +80,26 @@ foreach ( $services as $s ) {
 			</div>
 			<p class="map-axis">По горизонтали обороты двигателя, по вертикали нагрузка. Градусы опережения.</p>
 		</figure>
+		<figure class="map flip-face flip-back" data-dyno aria-hidden="true">
+			<figcaption>
+				<strong>Так меняется мощность после прошивки</strong>
+				<span>Пример стендового замера турбированного бензинового мотора, значения условные</span>
+			</figcaption>
+			<div class="dyno-plot" data-plot></div>
+			<ul class="dyno-legend" aria-label="Обозначения">
+				<li><i class="lg lg--t0"></i>Момент исходно</li>
+				<li><i class="lg lg--t1"></i>Момент после</li>
+				<li><i class="lg lg--p0"></i>Мощность исходно</li>
+				<li><i class="lg lg--p1"></i>Мощность после</li>
+			</ul>
+			<p class="dyno-result" data-result aria-live="polite"></p>
+		</figure>
+		</div>
+		<div class="flip-dots" role="group" aria-label="Переключить блок">
+			<button type="button" data-face="0" aria-pressed="true" aria-label="Таблица калибровки"></button>
+			<button type="button" data-face="1" aria-pressed="false" aria-label="Стендовый замер мощности"></button>
+		</div>
+		</div>
 	</div>
 </section>
 

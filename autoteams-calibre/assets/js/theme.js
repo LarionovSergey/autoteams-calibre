@@ -116,6 +116,177 @@
     seen.observe(map);
   }
 
+  /* ---------- Переворот блока: таблица калибровки → стендовый замер ---------- */
+  function initFlip() {
+    var root = document.querySelector('[data-flip]');
+    if (!root) { return; }
+    var front = root.querySelector('.flip-front');
+    var back = root.querySelector('.flip-back');
+    var dots = root.querySelectorAll('.flip-dots button');
+    var plot = root.querySelector('[data-plot]');
+    var result = root.querySelector('[data-result]');
+    var NS = 'http://www.w3.org/2000/svg';
+    var AUTO_MS = 7000;   // через сколько секунд после появления блок переворачивается сам
+
+    // условный турбобензиновый мотор: обороты, момент (Н·м) исходно и после прошивки
+    var RPM = [1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000, 5500, 6000, 6500];
+    var T0 = [190, 290, 330, 340, 340, 335, 320, 295, 265, 235, 205];
+    var T1 = [205, 350, 420, 430, 425, 410, 390, 360, 325, 285, 245];
+    function hp(t, i) { return t * RPM[i] / 7023; }
+    var P0 = T0.map(hp), P1 = T1.map(hp);
+    function peak(a) { return Math.max.apply(null, a); }
+
+    var iw = 0, ih = 0, clip0 = null, clip1 = null, cursor = null;
+    var token = 0, done = false, flipped = false, userTouched = false, autoTimer = 0;
+
+    function mk(tag, attrs, parent) {
+      var n = document.createElementNS(NS, tag);
+      Object.keys(attrs || {}).forEach(function (k) { n.setAttribute(k, attrs[k]); });
+      if (parent) { parent.appendChild(n); }
+      return n;
+    }
+    // плавная кривая через точки (Catmull-Rom → Безье); first — 'M' или 'L'
+    function curve(pts, first) {
+      var d = first + pts[0][0].toFixed(1) + ' ' + pts[0][1].toFixed(1);
+      for (var i = 0; i < pts.length - 1; i++) {
+        var p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
+        d += ' C' + (p1[0] + (p2[0] - p0[0]) / 6).toFixed(1) + ' ' + (p1[1] + (p2[1] - p0[1]) / 6).toFixed(1) +
+             ' ' + (p2[0] - (p3[0] - p1[0]) / 6).toFixed(1) + ' ' + (p2[1] - (p3[1] - p1[1]) / 6).toFixed(1) +
+             ' ' + p2[0].toFixed(1) + ' ' + p2[1].toFixed(1);
+      }
+      return d;
+    }
+
+    function build() {
+      var w = plot.clientWidth, h = plot.clientHeight;
+      if (!w || !h) { return false; }
+      plot.textContent = '';
+      var narrow = w < 420;
+      var m = { l: 34, r: 34, t: 18, b: 22 };
+      iw = w - m.l - m.r; ih = h - m.t - m.b;
+      var svg = mk('svg', { width: w, height: h, viewBox: '0 0 ' + w + ' ' + h, role: 'img',
+        'aria-label': 'График: момент и мощность двигателя до и после прошивки' }, plot);
+      var defs = mk('defs', {}, svg);
+      var c0 = mk('clipPath', { id: 'dy-c0' }, defs); clip0 = mk('rect', { x: m.l, y: 0, width: 0, height: h }, c0);
+      var c1 = mk('clipPath', { id: 'dy-c1' }, defs); clip1 = mk('rect', { x: m.l, y: 0, width: 0, height: h }, c1);
+      function X(r) { return m.l + (r - 1500) / 5000 * iw; }
+      function YT(v) { return m.t + ih * (1 - v / 600); }
+      function YP(v) { return m.t + ih * (1 - v / 300); }
+      var grid = mk('g', { 'font-size': narrow ? 9.5 : 11, fill: '#8f8c7e', 'font-family': 'inherit' }, svg);
+      for (var i = 0; i <= 6; i++) {
+        var y = m.t + ih * (1 - i / 6);
+        mk('line', { x1: m.l, x2: m.l + iw, y1: y, y2: y, stroke: '#34373a', 'stroke-width': 1 }, grid);
+        mk('text', { x: m.l - 6, y: y + 3.5, 'text-anchor': 'end' }, grid).textContent = i * 100;
+        mk('text', { x: m.l + iw + 6, y: y + 3.5, 'text-anchor': 'start' }, grid).textContent = i * 50;
+      }
+      for (var r = 2000; r <= 6000; r += 1000) {
+        mk('line', { x1: X(r), x2: X(r), y1: m.t, y2: m.t + ih, stroke: '#34373a', 'stroke-width': 1 }, grid);
+        mk('text', { x: X(r), y: h - 6, 'text-anchor': 'middle' }, grid).textContent = r;
+      }
+      mk('text', { x: m.l - 6, y: 9, 'text-anchor': 'end', fill: '#ffd60a', 'font-weight': 700 }, grid).textContent = 'Н·м';
+      mk('text', { x: m.l + iw + 6, y: 9, 'text-anchor': 'start', fill: '#ff8a1e', 'font-weight': 700 }, grid).textContent = 'л.с.';
+      mk('text', { x: m.l + iw, y: 9, 'text-anchor': 'end' }, grid).textContent = 'об/мин';
+
+      function pts(arr, Y) { return arr.map(function (v, i) { return [X(RPM[i]), Y(v)]; }); }
+      var g0 = mk('g', { 'clip-path': 'url(#dy-c0)', fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, svg);
+      mk('path', { d: curve(pts(T0, YT), 'M'), stroke: '#8a93a0', 'stroke-width': 2 }, g0);
+      mk('path', { d: curve(pts(P0, YP), 'M'), stroke: '#8a93a0', 'stroke-width': 2, 'stroke-dasharray': '6 4' }, g0);
+      var g1 = mk('g', { 'clip-path': 'url(#dy-c1)', fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, svg);
+      var t1 = pts(T1, YT), t0 = pts(T0, YT), p1 = pts(P1, YP), p0 = pts(P0, YP);
+      mk('path', { d: curve(t1, 'M') + ' ' + curve(t0.slice().reverse(), 'L') + ' Z', fill: 'rgba(255,214,10,.14)', stroke: 'none' }, g1);
+      mk('path', { d: curve(p1, 'M') + ' ' + curve(p0.slice().reverse(), 'L') + ' Z', fill: 'rgba(255,138,30,.14)', stroke: 'none' }, g1);
+      mk('path', { d: curve(t1, 'M'), stroke: '#ffd60a', 'stroke-width': 2.6 }, g1);
+      mk('path', { d: curve(p1, 'M'), stroke: '#ff8a1e', 'stroke-width': 2.6 }, g1);
+      cursor = mk('line', { x1: m.l, x2: m.l, y1: m.t, y2: m.t + ih, stroke: '#f2efe3', 'stroke-width': 1, opacity: 0 }, svg);
+      cursor._x = m.l;
+      return true;
+    }
+
+    function setSweep(rect, frac) { rect.setAttribute('width', Math.max(0, frac) * iw); }
+    function showResult(on) {
+      if (on) {
+        var a0 = Math.round(peak(P0)), a1 = Math.round(peak(P1));
+        var b0 = peak(T0), b1 = peak(T1);
+        result.innerHTML = 'Мощность <b>' + a0 + ' → ' + a1 + ' л.с.</b> (+' + Math.round((a1 / a0 - 1) * 100) +
+          '%) · Момент <b>' + b0 + ' → ' + b1 + ' Н·м</b> (+' + Math.round((b1 / b0 - 1) * 100) + '%)';
+      }
+      result.classList.toggle('is-in', !!on);
+    }
+    function finish() {
+      token++;
+      if (!clip0 && !build()) { return; }
+      setSweep(clip0, 1); setSweep(clip1, 1);
+      cursor.setAttribute('opacity', 0);
+      showResult(true);
+      done = true;
+    }
+    // «Замер»: сначала прорисовывается исходный прогон, затем наш поверх
+    function run() {
+      if (reduceMotion) { finish(); return; }
+      if (!build()) { return; }
+      var my = ++token;
+      done = false;
+      showResult(false);
+      var D0 = 1500, GAP = 500, D1 = 1800, start = 0;
+      function ease(k) { return k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2; }
+      function frame(ts) {
+        if (my !== token) { return; }
+        if (!start) { start = ts; }
+        var t = ts - start, f0 = Math.min(1, t / D0), f1 = Math.min(1, Math.max(0, (t - D0 - GAP) / D1));
+        setSweep(clip0, ease(f0)); setSweep(clip1, ease(f1));
+        var lead = t < D0 + GAP ? ease(f0) : ease(f1);
+        cursor.setAttribute('x1', cursor._x + lead * iw); cursor.setAttribute('x2', cursor._x + lead * iw);
+        cursor.setAttribute('opacity', (f0 >= 1 && f1 <= 0) || f1 >= 1 ? 0 : .45);
+        if (f1 >= 1) { done = true; showResult(true); return; }
+        requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+    }
+
+    function setFace(i) {
+      flipped = i === 1;
+      root.classList.toggle('is-flipped', flipped);
+      dots.forEach(function (d) { d.setAttribute('aria-pressed', d.getAttribute('data-face') === String(i) ? 'true' : 'false'); });
+      front.setAttribute('aria-hidden', flipped ? 'true' : 'false');
+      back.setAttribute('aria-hidden', flipped ? 'false' : 'true');
+      front.inert = flipped; back.inert = !flipped;
+      if (flipped) { setTimeout(run, reduceMotion ? 0 : 450); }
+      else { token++; }
+    }
+    function touched() { userTouched = true; clearTimeout(autoTimer); }
+
+    dots.forEach(function (d) {
+      d.addEventListener('click', function () { touched(); setFace(parseInt(d.getAttribute('data-face'), 10)); });
+    });
+    front.addEventListener('pointerdown', touched);
+    if (reduceMotion) { root.classList.add('no-anim'); }
+    back.inert = true;
+
+    // перерисовка при смене размера (поворот телефона и т.п.)
+    var lastW = 0, lastH = 0, rt = 0;
+    function onSize() {
+      var w = plot.clientWidth, h = plot.clientHeight;
+      if (!w || !h || (Math.abs(w - lastW) < 2 && Math.abs(h - lastH) < 2)) { return; }
+      lastW = w; lastH = h;
+      if (!clip0) { build(); return; }
+      var wasDone = done;
+      build();
+      if (wasDone || reduceMotion) { finish(); }
+    }
+    if ('ResizeObserver' in window) {
+      new ResizeObserver(function () { clearTimeout(rt); rt = setTimeout(onSize, 120); }).observe(plot);
+    }
+    onSize();
+
+    if (reduceMotion || !('IntersectionObserver' in window)) { return; }
+    var seen = new IntersectionObserver(function (entries) {
+      if (!entries[0].isIntersecting) { return; }
+      seen.disconnect();
+      autoTimer = setTimeout(function () { if (!userTouched && !flipped) { setFace(1); } }, AUTO_MS);
+    }, { threshold: 0.45 });
+    seen.observe(root);
+  }
+
   /* ---------- Карусель «Последние работы» ---------- */
   function initCarousel() {
     var root = document.querySelector('[data-carousel]');
@@ -359,5 +530,6 @@
   initReveal();
   initToTop();
   initMap();
+  initFlip();
   initCarousel();
 })();
