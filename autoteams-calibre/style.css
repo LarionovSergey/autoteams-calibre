@@ -113,7 +113,7 @@ p { margin: 0 0 1em; max-width: 68ch; }
   .map-grid td { padding: .6rem 0; }
 }
 /* Полоса «в цифрах» */
-.stats { background: var(--paper); border-block: 3px solid var(--yellow); }
+.stats { background: var(--paper); border-block: 1px solid var(--yellow); }
 .stats ul { list-style: none; margin: 0 auto; padding: clamp(1.4rem, 4vw, 2.6rem) 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: clamp(.6rem, 3vw, 2rem); width: min(100% - 2 * var(--gap), var(--wrap)); text-align: center; }
 .stats li { position: relative; padding-bottom: .9rem; display: flex; flex-direction: column; align-items: center; gap: .35rem; }
 .stats b { font: 700 clamp(2.3rem, 9vw, 4.4rem)/1 var(--f-display); color: var(--yellow); font-variant-numeric: tabular-nums; letter-spacing: .01em; }
