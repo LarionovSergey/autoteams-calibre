@@ -308,8 +308,15 @@ p { margin: 0 0 1em; max-width: 68ch; }
 }
 
 /* Кнопка «Наверх» */
-.to-top { position: fixed; right: max(1rem, env(safe-area-inset-right, 0px)); bottom: max(1rem, env(safe-area-inset-bottom, 0px)); z-index: 60; width: 3rem; height: 3rem; display: flex; align-items: center; justify-content: center; padding: 0; background: var(--yellow); color: var(--on-yellow); border: 2px solid var(--yellow); border-radius: 2px; cursor: pointer; box-shadow: 0 4px 14px rgba(0, 0, 0, .45); opacity: 0; visibility: hidden; transform: translateY(12px); transition: opacity .2s, transform .2s, visibility .2s, background-color .15s, border-color .15s; }
+.to-top { --shine-period: 1s; position: fixed; overflow: hidden; background-image: linear-gradient(180deg, rgba(255, 255, 255, .38) 0%, rgba(255, 255, 255, 0) 55%); right: max(1rem, env(safe-area-inset-right, 0px)); bottom: max(1rem, env(safe-area-inset-bottom, 0px)); z-index: 60; width: 3rem; height: 3rem; display: flex; align-items: center; justify-content: center; padding: 0; background: var(--yellow); color: var(--on-yellow); border: 2px solid var(--yellow); border-radius: 2px; cursor: pointer; box-shadow: 0 4px 14px rgba(0, 0, 0, .45); opacity: 0; visibility: hidden; transform: translateY(12px); transition: opacity .2s, transform .2s, visibility .2s, background-color .15s, border-color .15s; }
 .to-top.is-visible { opacity: 1; visibility: visible; transform: none; }
 .to-top:hover { background: var(--ink); border-color: var(--ink); }
 .to-top:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 @media (prefers-reduced-motion: reduce) { .to-top { transition: none; } }
+
+/* Глянец: полоса света пробегает по кнопке (период меняется в --shine-period) */
+.to-top::after { content: ""; position: absolute; top: -10%; bottom: -10%; left: 0; width: 45%; background: linear-gradient(100deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, .85) 50%, rgba(255, 255, 255, 0) 100%); transform: translateX(-160%) skewX(-20deg); pointer-events: none; }
+.to-top.is-visible::after { animation: to-top-shine var(--shine-period) ease-in-out infinite; }
+.to-top svg { position: relative; z-index: 1; }
+@keyframes to-top-shine { 0% { transform: translateX(-160%) skewX(-20deg); } 65%, 100% { transform: translateX(300%) skewX(-20deg); } }
+@media (prefers-reduced-motion: reduce) { .to-top.is-visible::after { animation: none; display: none; } }
