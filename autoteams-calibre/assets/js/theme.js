@@ -152,7 +152,32 @@
     refresh();
   }
 
+  /* ---------- Кнопка «Наверх»: только на страницах выше экрана, после небольшой прокрутки ---------- */
+  function initToTop() {
+    var btn = document.querySelector('.to-top');
+    if (!btn) { return; }
+    var ticking = false;
+    function update() {
+      ticking = false;
+      var doc = document.documentElement;
+      var tall = doc.scrollHeight > window.innerHeight + 200;
+      var show = tall && (window.pageYOffset || doc.scrollTop) > 300;
+      btn.classList.toggle('is-visible', show);
+      btn.setAttribute('aria-hidden', show ? 'false' : 'true');
+      btn.tabIndex = show ? 0 : -1;
+    }
+    function request() { if (!ticking) { ticking = true; window.requestAnimationFrame(update); } }
+    window.addEventListener('scroll', request, { passive: true });
+    window.addEventListener('resize', request);
+    window.addEventListener('load', request);
+    btn.addEventListener('click', function () {
+      window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+    });
+    update();
+  }
+
   initNav();
+  initToTop();
   initMap();
   initCarousel();
 })();
