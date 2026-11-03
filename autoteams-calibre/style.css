@@ -113,7 +113,8 @@ p { margin: 0 0 1em; max-width: 68ch; }
   .map-grid td { padding: .6rem 0; }
 }
 /* Отзывы на открытых площадках */
-.rv-open .wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: clamp(1.5rem, 5vw, 4rem); align-items: center; }
+.rv-open .wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(1.5rem, 8vw, 7rem); align-items: center; }
+.rv-open .wrap > div { justify-self: end; width: min(100%, 30rem); }
 .rv-open h2 { margin: .5rem 0 .8rem; max-width: 20ch; }
 .eyebrow { margin: 0; font: 700 .8rem/1 var(--f-display); letter-spacing: .16em; text-transform: uppercase; color: var(--yellow); }
 .rv-open-text { margin: 0; color: var(--ink-2); max-width: 44ch; }
@@ -122,7 +123,7 @@ p { margin: 0 0 1em; max-width: 68ch; }
 .rv-links a svg { flex: none; color: var(--yellow); transition: transform .2s; }
 .rv-links a:hover, .rv-links a:focus-visible { border-color: var(--yellow); }
 .rv-links a:hover svg, .rv-links a:focus-visible svg { transform: translate(2px, -2px); }
-@media (max-width: 760px) { .rv-open .wrap { grid-template-columns: 1fr; } .rv-links { order: 0; } }
+@media (max-width: 760px) { .rv-open .wrap { grid-template-columns: 1fr; } .rv-links { order: 0; } .rv-open .wrap > div { justify-self: start; width: 100%; } }
 
 /* Полоса «в цифрах» */
 .stats { background: var(--paper); border-block: 1px solid var(--yellow); }
