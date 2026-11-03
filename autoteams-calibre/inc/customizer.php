@@ -18,6 +18,7 @@ add_action( 'customize_register', function ( $wp ) {
 		'address'    => array( 'Адрес', 'text', 'sanitize_text_field' ),
 		'hours'      => array( 'Часы работы', 'text', 'sanitize_text_field' ),
 		'vk'         => array( 'Ссылка на ВКонтакте', 'url', 'esc_url_raw' ),
+		'twogis'     => array( 'Ссылка на отзывы в 2ГИС (кнопка появится, когда адрес указан)', 'url', 'esc_url_raw' ),
 		'facebook'   => array( 'Ссылка на Facebook', 'url', 'esc_url_raw' ),
 		'map'        => array( 'Ссылка для вставки карты (iframe src из Яндекс.Карт или Google Maps)', 'url', 'esc_url_raw' ),
 		'privacy'    => array( 'Ссылка на политику обработки персональных данных', 'url', 'esc_url_raw' ),

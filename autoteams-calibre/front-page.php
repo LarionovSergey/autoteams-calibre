@@ -195,6 +195,23 @@ if ( $makes_n > 0 ) { $stats[] = array( $makes_n, '', 'марок авто в н
 	</div>
 </section>
 
+<?php $rev_links = at_review_links(); if ( $rev_links ) : ?>
+<section class="section rv-open" aria-labelledby="rv-open-title">
+	<div class="wrap">
+		<div>
+			<p class="eyebrow">Ваше мнение важно</p>
+			<h2 id="rv-open-title">Отзывы — на открытых площадках.</h2>
+			<p class="rv-open-text">Читайте, что пишут о нас клиенты, и оставьте свой отзыв после визита.</p>
+		</div>
+		<ul class="rv-links">
+			<?php foreach ( $rev_links as $l ) : ?>
+				<li><a href="<?php echo esc_url( $l[1] ); ?>" target="_blank" rel="noopener"><span><?php echo esc_html( $l[0] ); ?></span><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M5 3h8v8M13 3L3 13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/></svg></a></li>
+			<?php endforeach; ?>
+		</ul>
+	</div>
+</section>
+<?php endif; ?>
+
 <?php if ( $reviews ) : ?>
 <section class="section" aria-labelledby="rev-title">
 	<div class="wrap">

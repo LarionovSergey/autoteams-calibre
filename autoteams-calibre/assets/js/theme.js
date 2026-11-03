@@ -509,7 +509,7 @@
     var isWorks = !!document.querySelector('.works > .work'); // страница «Работы», категории и марки
     if (!isHome && !isWorks) { return; }
     var sel = isHome
-      ? '.quick .wrap > *, .section-head, .prices li, .stage, .carousel, .steps li, .faq details, .quote, .news-list li, .contact .wrap > *'
+      ? '.quick .wrap > *, .section-head, .prices li, .stage, .carousel, .steps li, .faq details, .rv-open .wrap > *, .quote, .news-list li, .contact .wrap > *'
       : '.works > .work';
     var vh = window.innerHeight;
     var items = [].slice.call(document.querySelectorAll(sel)).filter(function (el) {

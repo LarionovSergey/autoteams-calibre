@@ -14,6 +14,7 @@ function at_defaults() {
 		'address'    => 'г. Красноярск, ул. С. Лазо, 12Д',
 		'hours'      => 'Пн–Пт 10:00–21:00, Сб 10:00–19:00, Вс выходной',
 		'vk'         => 'https://vk.ru/chiptuning24rus',
+		'twogis'     => '',
 		'facebook'   => 'https://www.facebook.com/share/1EpG9soemt/',
 		'map'        => '',
 		'map_org'    => '93333581437', // номер организации в Яндекс Картах: кнопка «Построить маршрут» открывает карточку

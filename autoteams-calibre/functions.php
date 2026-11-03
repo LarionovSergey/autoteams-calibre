@@ -4,7 +4,7 @@
  */
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'AT_VER', '1.0.30' );
+define( 'AT_VER', '1.0.31' );
 
 require get_template_directory() . '/inc/defaults.php';
 require get_template_directory() . '/inc/cpt.php';
@@ -286,6 +286,16 @@ function at_map_src() {
 		return 'https://yandex.ru/map-widget/v1/?ll=' . rawurlencode( $ll ) . '&mode=search&oid=' . $org . '&ol=biz&z=16';
 	}
 	return 'https://yandex.ru/map-widget/v1/?ll=' . rawurlencode( $ll ) . '&z=16&pt=' . rawurlencode( $ll . ',pm2ylm' );
+}
+
+/** Ссылки на отзывы на открытых площадках: [подпись, адрес]. */
+function at_review_links() {
+	$out = array();
+	$tg  = trim( (string) at_opt( 'twogis' ) );
+	if ( '' !== $tg ) { $out[] = array( 'Отзывы в 2ГИС', $tg ); }
+	$org = preg_replace( '/\D/', '', (string) at_opt( 'map_org' ) );
+	if ( $org ) { $out[] = array( 'Отзывы в Яндекс Картах', 'https://yandex.ru/maps/org/avtoteams/' . $org . '/reviews/' ); }
+	return $out;
 }
 
 /** Ссылка «Построить маршрут» в Яндекс.Картах. */
