@@ -11,6 +11,20 @@ get_header(); ?>
 	</div>
 </div>
 <div class="wrap entry">
+	<?php
+	$at_cats = get_terms( array( 'taxonomy' => 'work_cat', 'hide_empty' => true ) );
+	$at_cur  = sanitize_key( get_query_var( 'work_cat' ) );
+	$at_base = get_post_type_archive_link( 'work' );
+	if ( $at_cats && ! is_wp_error( $at_cats ) ) : ?>
+		<nav class="filters" aria-label="Категории работ">
+			<ul>
+				<li><a href="<?php echo esc_url( $at_base ); ?>"<?php echo $at_cur ? '' : ' aria-current="page"'; ?>>Все</a></li>
+				<?php foreach ( $at_cats as $c ) : ?>
+					<li><a href="<?php echo esc_url( add_query_arg( 'work_cat', $c->slug, $at_base ) ); ?>"<?php echo $at_cur === $c->slug ? ' aria-current="page"' : ''; ?>><?php echo esc_html( $c->name ); ?> <span><?php echo (int) $c->count; ?></span></a></li>
+				<?php endforeach; ?>
+			</ul>
+		</nav>
+	<?php endif; ?>
 	<?php if ( have_posts() ) : ?>
 		<div class="works">
 			<?php while ( have_posts() ) : the_post(); at_work_card( at_work_from_post( get_post() ) ); endwhile; ?>

@@ -16,6 +16,26 @@ add_action( 'init', function () {
 		'supports' => array( 'title', 'editor', 'thumbnail', 'excerpt' ),
 	) );
 
+	register_taxonomy( 'work_cat', 'work', array(
+		'labels' => array(
+			'name' => 'Категории работ', 'singular_name' => 'Категория работ', 'menu_name' => 'Категории',
+			'all_items' => 'Все категории', 'add_new_item' => 'Новая категория', 'edit_item' => 'Изменить категорию',
+			'search_items' => 'Найти категорию', 'not_found' => 'Категорий пока нет',
+		),
+		'hierarchical' => true, 'public' => true, 'show_ui' => true, 'show_admin_column' => true,
+		'show_in_rest' => true, 'rest_base' => 'work_cat', 'query_var' => 'work_cat',
+		'rewrite' => array( 'slug' => 'work-category' ),
+	) );
+
+	// Поля работы доступны и из админки WordPress.com / REST (нужно для импорта и редактирования извне)
+	foreach ( array( '_at_ecu', '_at_stage', '_at_gain_text', '_at_hp_before', '_at_hp_after', '_at_nm_before', '_at_nm_after' ) as $mk ) {
+		register_post_meta( 'work', $mk, array(
+			'type' => 'string', 'single' => true, 'show_in_rest' => true,
+			'sanitize_callback' => 'sanitize_text_field',
+			'auth_callback' => function () { return current_user_can( 'edit_posts' ); },
+		) );
+	}
+
 	register_post_type( 'service', array(
 		'labels' => array(
 			'name' => 'Услуги', 'singular_name' => 'Услуга', 'add_new' => 'Добавить услугу',
@@ -53,7 +73,8 @@ function at_meta_fields() {
 	return array(
 		'work' => array(
 			'_at_ecu'       => array( 'Блок управления (например, Simos 8.41)', 'text' ),
-			'_at_stage'     => array( 'Что сделано коротко (например, Stage 1)', 'text' ),
+			'_at_stage'     => array( 'Метка на карточке (например, EGR, DPF)', 'text' ),
+			'_at_gain_text' => array( 'Прирост текстом (например, +16–18%)', 'text' ),
 			'_at_hp_before' => array( 'Мощность исходно, л.с.', 'number' ),
 			'_at_hp_after'  => array( 'Мощность после, л.с.', 'number' ),
 			'_at_nm_before' => array( 'Крутящий момент исходно, Н·м', 'number' ),

@@ -4,7 +4,7 @@
  */
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'AT_VER', '1.0.4' );
+define( 'AT_VER', '1.0.5' );
 
 require get_template_directory() . '/inc/defaults.php';
 require get_template_directory() . '/inc/cpt.php';
@@ -164,6 +164,10 @@ function at_work_from_post( $post ) {
 	$nm_a = (int) get_post_meta( $post->ID, '_at_nm_after', true );
 	$tag  = get_post_meta( $post->ID, '_at_stage', true );
 	if ( ! $tag ) { $tag = get_post_meta( $post->ID, '_at_ecu', true ); }
+	if ( ! $tag ) {
+		$terms = get_the_terms( $post, 'work_cat' );
+		if ( $terms && ! is_wp_error( $terms ) ) { $tag = $terms[0]->name; }
+	}
 	return array(
 		'title'   => get_the_title( $post ),
 		'url'     => get_permalink( $post ),
@@ -172,5 +176,13 @@ function at_work_from_post( $post ) {
 		'tag'     => $tag,
 		'gain_hp' => ( $hp_a > $hp_b && $hp_b > 0 ) ? $hp_a - $hp_b : 0,
 		'gain_nm' => ( $nm_a > $nm_b && $nm_b > 0 ) ? $nm_a - $nm_b : 0,
+		'gain_text' => (string) get_post_meta( $post->ID, '_at_gain_text', true ),
 	);
 }
+
+/** Страница «Все работы» и фильтр по категории показывают до 24 работ сразу. */
+add_action( 'pre_get_posts', function ( $q ) {
+	if ( ! is_admin() && $q->is_main_query() && ( $q->is_post_type_archive( 'work' ) || $q->is_tax( 'work_cat' ) ) ) {
+		$q->set( 'posts_per_page', 24 );
+	}
+} );
