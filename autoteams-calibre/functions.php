@@ -4,7 +4,7 @@
  */
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'AT_VER', '1.0.6' );
+define( 'AT_VER', '1.0.7' );
 
 require get_template_directory() . '/inc/defaults.php';
 require get_template_directory() . '/inc/cpt.php';
@@ -182,7 +182,93 @@ function at_work_from_post( $post ) {
 
 /** Страница «Все работы» и фильтр по категории показывают до 24 работ сразу. */
 add_action( 'pre_get_posts', function ( $q ) {
-	if ( ! is_admin() && $q->is_main_query() && ( $q->is_post_type_archive( 'work' ) || $q->is_tax( 'work_cat' ) ) ) {
+	if ( ! is_admin() && $q->is_main_query() && ( $q->is_post_type_archive( 'work' ) || $q->is_tax( 'work_cat' ) || $q->is_tax( 'car_make' ) ) ) {
 		$q->set( 'posts_per_page', 24 );
 	}
 } );
+
+/* ---------- Марки автомобилей ---------- */
+
+/** Марка работы определяется по началу названия («Toyota Hilux 2.7d, 2016» даёт Toyota). Возвращает array( название, slug ). */
+function at_make_from_title( $title ) {
+	$title = trim( wp_strip_all_tags( (string) $title ) );
+	// Начало названия (без учёта регистра) => как показывать марку.
+	$known = array(
+		'Land Rover' => 'Land Rover', 'Range Rover' => 'Land Rover', 'Mercedes' => 'Mercedes-Benz',
+		'Škoda' => 'Skoda', 'Skoda' => 'Skoda', 'VW ' => 'Volkswagen', 'Volkswagen' => 'Volkswagen',
+		'Toyota' => 'Toyota', 'Lexus' => 'Lexus', 'Honda' => 'Honda', 'Nissan' => 'Nissan', 'Infiniti' => 'Infiniti',
+		'Mazda' => 'Mazda', 'Mitsubishi' => 'Mitsubishi', 'Subaru' => 'Subaru', 'Suzuki' => 'Suzuki', 'Isuzu' => 'Isuzu',
+		'Hyundai' => 'Hyundai', 'Genesis' => 'Genesis', 'Kia' => 'Kia', 'SsangYong' => 'SsangYong', 'Ssang Yong' => 'SsangYong',
+		'Audi' => 'Audi', 'BMW' => 'BMW', 'Opel' => 'Opel', 'Renault' => 'Renault', 'Peugeot' => 'Peugeot', 'Citroen' => 'Citroen',
+		'Ford' => 'Ford', 'Chevrolet' => 'Chevrolet', 'Jeep' => 'Jeep', 'Cadillac' => 'Cadillac', 'Dodge' => 'Dodge',
+		'Volvo' => 'Volvo', 'Lada' => 'Lada', 'ВАЗ' => 'Lada', 'УАЗ' => 'УАЗ', 'ГАЗ' => 'ГАЗ', 'Haval' => 'Haval', 'Chery' => 'Chery',
+		'Geely' => 'Geely', 'Great Wall' => 'Great Wall', 'Daewoo' => 'Daewoo', 'Chrysler' => 'Chrysler', 'Mini' => 'Mini',
+	);
+	foreach ( $known as $prefix => $label ) {
+		if ( 0 === mb_stripos( $title, $prefix ) ) {
+			return array( $label, at_make_slug( $label ) );
+		}
+	}
+	if ( preg_match( '/^[\p{L}][\p{L}\p{N}-]*/u', $title, $m ) ) {
+		return array( $m[0], at_make_slug( $m[0] ) );
+	}
+	return array( '', '' );
+}
+
+function at_make_slug( $label ) {
+	$map = array( 'УАЗ' => 'uaz', 'ГАЗ' => 'gaz' );
+	if ( isset( $map[ $label ] ) ) { return $map[ $label ]; }
+	$slug = sanitize_title( remove_accents( $label ) );
+	return preg_match( '/^[a-z0-9-]+$/', $slug ) ? $slug : 'make-' . substr( md5( $label ), 0, 6 );
+}
+
+/** Назначает работе марку по названию, если марка ещё не выбрана вручную. */
+function at_assign_make( $post_id ) {
+	if ( wp_get_object_terms( $post_id, 'car_make', array( 'fields' => 'ids' ) ) ) { return; }
+	list( $label, $slug ) = at_make_from_title( get_the_title( $post_id ) );
+	if ( '' === $label ) { return; }
+	$term = get_term_by( 'slug', $slug, 'car_make' );
+	if ( ! $term ) {
+		$res = wp_insert_term( $label, 'car_make', array( 'slug' => $slug ) );
+		if ( is_wp_error( $res ) ) { return; }
+		$term_id = (int) $res['term_id'];
+	} else {
+		$term_id = (int) $term->term_id;
+	}
+	wp_set_object_terms( $post_id, array( $term_id ), 'car_make' );
+}
+
+/** Новая или изменённая работа получает марку автоматически. */
+add_action( 'save_post_work', function ( $post_id, $post ) {
+	if ( wp_is_post_revision( $post_id ) || 'auto-draft' === $post->post_status ) { return; }
+	at_assign_make( $post_id );
+}, 20, 2 );
+
+/** Один раз после обновления темы: расставляет марки уже существующим работам. */
+add_action( 'init', function () {
+	if ( get_option( 'at_makes_synced' ) === AT_VER ) { return; }
+	$ids = get_posts( array( 'post_type' => 'work', 'post_status' => array( 'publish', 'draft', 'pending', 'private' ), 'fields' => 'ids', 'nopaging' => true ) );
+	foreach ( $ids as $id ) { at_assign_make( $id ); }
+	update_option( 'at_makes_synced', AT_VER, false );
+}, 30 );
+
+/** Марки, которые есть у работ выбранной категории (или у всех работ): список из array( term, count ). */
+function at_makes_for_category( $cat_slug = '' ) {
+	$args = array( 'post_type' => 'work', 'post_status' => 'publish', 'fields' => 'ids', 'nopaging' => true, 'no_found_rows' => true );
+	if ( $cat_slug ) {
+		$args['tax_query'] = array( array( 'taxonomy' => 'work_cat', 'field' => 'slug', 'terms' => $cat_slug ) );
+	}
+	$ids = get_posts( $args );
+	if ( ! $ids ) { return array(); }
+	$rel = wp_get_object_terms( $ids, 'car_make', array( 'fields' => 'all_with_object_id' ) );
+	if ( is_wp_error( $rel ) ) { return array(); }
+	$out = array();
+	foreach ( $rel as $t ) {
+		if ( ! isset( $out[ $t->term_id ] ) ) { $out[ $t->term_id ] = array( 'term' => $t, 'count' => 0 ); }
+		$out[ $t->term_id ]['count']++;
+	}
+	uasort( $out, function ( $a, $b ) {
+		return ( $b['count'] <=> $a['count'] ) ?: strcasecmp( $a['term']->name, $b['term']->name );
+	} );
+	return array_values( $out );
+}

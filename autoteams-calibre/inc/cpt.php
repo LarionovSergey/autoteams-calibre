@@ -27,6 +27,17 @@ add_action( 'init', function () {
 		'rewrite' => array( 'slug' => 'work-category' ),
 	) );
 
+	register_taxonomy( 'car_make', 'work', array(
+		'labels' => array(
+			'name' => 'Марки автомобилей', 'singular_name' => 'Марка', 'menu_name' => 'Марки',
+			'all_items' => 'Все марки', 'add_new_item' => 'Новая марка', 'edit_item' => 'Изменить марку',
+			'search_items' => 'Найти марку', 'not_found' => 'Марок пока нет',
+		),
+		'hierarchical' => false, 'public' => true, 'show_ui' => true, 'show_admin_column' => true,
+		'show_in_rest' => true, 'rest_base' => 'car_make', 'query_var' => 'car_make',
+		'rewrite' => array( 'slug' => 'make' ),
+	) );
+
 	// Поля работы доступны и из админки WordPress.com / REST (нужно для импорта и редактирования извне)
 	foreach ( array( '_at_ecu', '_at_stage', '_at_gain_text', '_at_hp_before', '_at_hp_after', '_at_nm_before', '_at_nm_after' ) as $mk ) {
 		register_post_meta( 'work', $mk, array(
