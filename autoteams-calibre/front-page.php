@@ -101,8 +101,8 @@ $status  = isset( $_GET['lead'] ) ? sanitize_key( wp_unslash( $_GET['lead'] ) ) 
 <?php
 $makes_n = (int) wp_count_terms( array( 'taxonomy' => 'car_make', 'hide_empty' => true ) );
 $stats   = array(
-	array( 1700, '+', 'выполненных работ' ),
-	array( max( 1, (int) wp_date( 'Y' ) - 2017 ), '', 'лет в деле' ),
+	array( 2500, '+', 'выполненных работ' ),
+	array( 10, '+', 'лет в деле' ),
 );
 if ( $makes_n > 0 ) { $stats[] = array( $makes_n, '', 'марок авто в наших работах' ); }
 ?>
