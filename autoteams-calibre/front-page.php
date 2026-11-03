@@ -29,11 +29,6 @@ $reviews = get_posts( array( 'post_type' => 'review', 'numberposts' => 3 ) );
 $news    = at_news_on() ? get_posts( array( 'post_type' => 'post', 'numberposts' => 3 ) ) : array();
 $map     = at_map_data();
 $status  = isset( $_GET['lead'] ) ? sanitize_key( wp_unslash( $_GET['lead'] ) ) : '';
-
-$strip = array();
-foreach ( $services as $s ) {
-	if ( $s[1] > 0 && count( $strip ) < 3 ) { $strip[] = $s; }
-}
 ?>
 
 <section class="hero">
@@ -102,17 +97,6 @@ foreach ( $services as $s ) {
 		</div>
 	</div>
 </section>
-
-<?php if ( $strip ) : ?>
-<div class="strip">
-	<ul>
-		<?php foreach ( $strip as $s ) : ?>
-			<li><b><?php echo esc_html( at_price( $s[1] ) ); ?></b><span><?php echo esc_html( $s[0] ); ?></span></li>
-		<?php endforeach; ?>
-		<li><b>Бесплатно</b><span>ответим, что можно сделать с вашей машиной</span></li>
-	</ul>
-</div>
-<?php endif; ?>
 
 <?php
 $makes_n = (int) wp_count_terms( array( 'taxonomy' => 'car_make', 'hide_empty' => true ) );
