@@ -76,16 +76,25 @@
     function maxScroll() { return track.scrollWidth - track.clientWidth; }
     function fits() { return maxScroll() <= 2; }
 
+    /* Сколько карточек видно сразу: на ширину этой «страницы» и сдвигаем (3 на компьютере, 2 на планшете, 1 на телефоне) */
+    function perPage() {
+      var s = stepSize();
+      if (!s) { return 1; }
+      var gap = parseFloat(getComputedStyle(track).columnGap) || 0;
+      return Math.max(1, Math.round((track.clientWidth + gap) / s));
+    }
+    function pageSize() { return stepSize() * perPage(); }
+
     function goTo(left) {
       track.scrollTo({ left: left, behavior: reduceMotion ? 'auto' : 'smooth' });
       // Счётчик обновляем и после программной прокрутки, не только по событию scroll
       setTimeout(updateCount, reduceMotion ? 60 : 700);
     }
     function forward() {
-      if (track.scrollLeft >= maxScroll() - 2) { goTo(0); } else { goTo(track.scrollLeft + stepSize()); }
+      if (track.scrollLeft >= maxScroll() - 2) { goTo(0); } else { goTo(Math.min(maxScroll(), track.scrollLeft + pageSize())); }
     }
     function back() {
-      if (track.scrollLeft <= 2) { goTo(maxScroll()); } else { goTo(track.scrollLeft - stepSize()); }
+      if (track.scrollLeft <= 2) { goTo(maxScroll()); } else { goTo(Math.max(0, track.scrollLeft - pageSize())); }
     }
 
     function updateCount() {
