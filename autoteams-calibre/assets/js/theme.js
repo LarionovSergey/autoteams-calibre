@@ -34,23 +34,86 @@
       return { bg: 'rgb(' + c.join(',') + ')', fg: lum < 120 ? '#f2efe3' : '#141516' };
     }
 
-    function show(state) {
-      cells.forEach(function (td) {
-        var v = td.getAttribute('data-' + state);
-        var c = color(parseFloat(v));
-        td.textContent = v;
-        td.style.backgroundColor = c.bg;
-        td.style.color = c.fg;
-      });
+    function paint(td, v, final) {
+      var c = color(v);
+      td.textContent = v.toFixed(1);
+      td.style.backgroundColor = c.bg;
+      td.style.color = c.fg;
+      if (final) { td.classList.remove('is-tuning'); }
+    }
+
+    function mark(state) {
       buttons.forEach(function (b) {
         b.setAttribute('aria-pressed', b.getAttribute('data-state') === state ? 'true' : 'false');
       });
     }
 
+    // мгновенно (без анимации)
+    function show(state) {
+      cells.forEach(function (td) {
+        var v = parseFloat(td.getAttribute('data-' + state));
+        td._v = v;
+        td._job = null;
+        paint(td, v, true);
+      });
+      mark(state);
+    }
+
+    // «Замер на стенде»: значения по очереди пересчитываются волной слева направо
+    var jobs = [];
+    var looping = false;
+    function loop(ts) {
+      var alive = false;
+      jobs = jobs.filter(function (td) {
+        var j = td._job;
+        if (!j) { return false; }
+        var t = ts - j.start;
+        if (t < 0) { alive = true; return true; }
+        var k = Math.min(1, t / j.dur);
+        var ease = 1 - Math.pow(1 - k, 3);
+        td._v = j.from + (j.to - j.from) * ease;
+        td.classList.add('is-tuning');
+        paint(td, td._v, k >= 1);
+        if (k >= 1) { td._v = j.to; td._job = null; return false; }
+        alive = true;
+        return true;
+      });
+      if (alive) { requestAnimationFrame(loop); } else { looping = false; }
+    }
+    function animateTo(state) {
+      var now = performance.now();
+      var cols = map.querySelectorAll('thead th').length - 1;
+      mark(state);
+      cells.forEach(function (td, i) {
+        var col = i % cols, row = Math.floor(i / cols);
+        var to = parseFloat(td.getAttribute('data-' + state));
+        if (td._v === undefined) { td._v = parseFloat(td.textContent); }
+        td._job = { from: td._v, to: to, start: now + col * 55 + row * 22, dur: 520 };
+        if (jobs.indexOf(td) < 0) { jobs.push(td); }
+      });
+      if (!looping) { looping = true; requestAnimationFrame(loop); }
+    }
+
     buttons.forEach(function (b) {
-      b.addEventListener('click', function () { show(b.getAttribute('data-state')); });
+      b.addEventListener('click', function () {
+        var st = b.getAttribute('data-state');
+        if (reduceMotion) { show(st); } else { animateTo(st); }
+      });
     });
-    show('b');
+
+    if (reduceMotion || !('IntersectionObserver' in window)) {
+      show('b');
+      return;
+    }
+    // сначала «Исходно», а когда блок виден — волной переходит в «После»
+    map.classList.add('is-live');
+    show('a');
+    var seen = new IntersectionObserver(function (entries) {
+      if (!entries[0].isIntersecting) { return; }
+      seen.disconnect();
+      setTimeout(function () { animateTo('b'); }, 700);
+    }, { threshold: 0.45 });
+    seen.observe(map);
   }
 
   /* ---------- Карусель «Последние работы» ---------- */
