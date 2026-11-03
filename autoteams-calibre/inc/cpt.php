@@ -13,7 +13,7 @@ add_action( 'init', function () {
 		),
 		'public' => true, 'has_archive' => 'works', 'rewrite' => array( 'slug' => 'works' ),
 		'menu_icon' => 'dashicons-car', 'menu_position' => 5, 'show_in_rest' => true,
-		'supports' => array( 'title', 'editor', 'thumbnail', 'excerpt' ),
+		'supports' => array( 'title', 'editor', 'thumbnail', 'excerpt', 'custom-fields' ),
 	) );
 
 	register_taxonomy( 'work_cat', 'work', array(
