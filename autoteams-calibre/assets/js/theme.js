@@ -242,10 +242,15 @@
     update();
   }
 
-  /* ---------- Плавное появление блоков главной при прокрутке ---------- */
+  /* ---------- Плавное появление блоков при прокрутке: главная и страница «Работы» ---------- */
   function initReveal() {
-    if (reduceMotion || !('IntersectionObserver' in window) || !document.body.classList.contains('home')) { return; }
-    var sel = '.quick .wrap > *, .section-head, .prices li, .stage, .carousel, .steps li, .faq details, .quote, .news-list li, .contact .wrap > *';
+    if (reduceMotion || !('IntersectionObserver' in window)) { return; }
+    var isHome = document.body.classList.contains('home');
+    var isWorks = !!document.querySelector('.works > .work'); // страница «Работы», категории и марки
+    if (!isHome && !isWorks) { return; }
+    var sel = isHome
+      ? '.quick .wrap > *, .section-head, .prices li, .stage, .carousel, .steps li, .faq details, .quote, .news-list li, .contact .wrap > *'
+      : '.works > .work';
     var vh = window.innerHeight;
     var items = [].slice.call(document.querySelectorAll(sel)).filter(function (el) {
       // Что уже видно при открытии страницы, не прячем: мерцания не будет.
