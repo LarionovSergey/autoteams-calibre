@@ -176,7 +176,53 @@
     update();
   }
 
+  /* ---------- Плавное появление блоков главной при прокрутке ---------- */
+  function initReveal() {
+    if (reduceMotion || !('IntersectionObserver' in window) || !document.body.classList.contains('home')) { return; }
+    var sel = '.quick .wrap > *, .section-head, .prices li, .stage, .carousel, .steps li, .faq details, .quote, .news-list li, .contact .wrap > *';
+    var vh = window.innerHeight;
+    var items = [].slice.call(document.querySelectorAll(sel)).filter(function (el) {
+      // Что уже видно при открытии страницы, не прячем: мерцания не будет.
+      return el.getBoundingClientRect().top > vh * 0.92;
+    });
+    if (!items.length) { return; }
+    items.forEach(function (el) { el.classList.add('reveal'); });
+    function show(el, delay) {
+      if (!el.classList.contains('reveal') || el.classList.contains('is-in')) { return; }
+      io.unobserve(el);
+      el.style.setProperty('--rv-delay', delay + 'ms');
+      el.classList.add('is-in');
+      // После показа снимаем служебные классы, чтобы не мешать наведению и фокусу.
+      window.setTimeout(function () {
+        el.classList.remove('reveal', 'is-in');
+        el.style.removeProperty('--rv-delay');
+      }, delay + 900);
+    }
+    var io = new IntersectionObserver(function (entries) {
+      var n = 0;
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) { return; }
+        show(e.target, Math.min(n * 90, 450));
+        n++;
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
+    items.forEach(function (el) { io.observe(el); });
+    // Быстрая прокрутка или переход по ссылке-якорю: блоки, оставшиеся выше экрана, показываем сразу.
+    var raf = false;
+    window.addEventListener('scroll', function () {
+      if (raf) { return; }
+      raf = true;
+      window.requestAnimationFrame(function () {
+        raf = false;
+        items.forEach(function (el) {
+          if (el.classList.contains('reveal') && !el.classList.contains('is-in') && el.getBoundingClientRect().bottom < 0) { show(el, 0); }
+        });
+      });
+    }, { passive: true });
+  }
+
   initNav();
+  initReveal();
   initToTop();
   initMap();
   initCarousel();
