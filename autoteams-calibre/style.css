@@ -103,6 +103,15 @@ p { margin: 0 0 1em; max-width: 68ch; }
 .map-grid td { padding: .5rem .2rem; background: var(--sand); color: var(--ink); transition: background-color .35s; }
 .map.is-live .map-grid td { transition: none; }
 .map-grid td.is-tuning { box-shadow: inset 0 0 0 1px var(--yellow), 0 0 8px rgba(255, 214, 10, .55); position: relative; }
+/* Телефон: таблица целиком по ширине экрана, без бокового свайпа */
+@media (max-width: 640px) {
+  .map { padding: .75rem .6rem; }
+  .map-grid { min-width: 0; table-layout: fixed; border-spacing: 1px; font-size: .72rem; }
+  .map-grid thead th { font-size: .6rem; padding: .2rem 0; letter-spacing: -.01em; }
+  .map-grid thead th:first-child { width: 17%; font-size: .52rem; }
+  .map-grid tbody th { font-size: .62rem; padding: 0; }
+  .map-grid td { padding: .6rem 0; }
+}
 .map-axis { font-size: .78rem; color: var(--mute); margin-top: .5rem; }
 
 /* ---------- Strip & quick form ---------- */
