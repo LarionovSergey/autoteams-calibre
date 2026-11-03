@@ -148,7 +148,7 @@ foreach ( $services as $s ) {
 			<div class="carousel-ctl">
 				<button type="button" class="car-prev" aria-label="Назад">←</button>
 				<button type="button" class="car-next" aria-label="Вперёд">→</button>
-				<span class="car-count" aria-hidden="true"></span>
+				<span class="car-timer" aria-hidden="true"><svg viewBox="0 0 28 28" width="28" height="28" focusable="false"><circle class="car-timer-bg" cx="14" cy="14" r="11"/><circle class="car-timer-fg" cx="14" cy="14" r="11"/></svg></span>
 				<button type="button" class="car-play" aria-pressed="false">Пауза</button>
 			</div>
 			<div class="carousel-track" tabindex="0" aria-label="Список работ, листается стрелками клавиатуры">

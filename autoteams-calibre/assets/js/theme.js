@@ -61,57 +61,116 @@
     var prev = root.querySelector('.car-prev');
     var next = root.querySelector('.car-next');
     var playBtn = root.querySelector('.car-play');
-    var count = root.querySelector('.car-count');
+    var timerBox = root.querySelector('.car-timer');
+    var ring = root.querySelector('.car-timer-fg');
     var interval = parseInt(root.getAttribute('data-interval'), 10) || 5000;
     var items = track.children;
-    var timer = null;
+    var total = items.length;     // настоящих карточек (без копий)
+    var cloned = false;           // есть ли копии в конце для бесконечной ленты
     var userPaused = reduceMotion; // при «уменьшить движение» сами не крутим
     var hovering = false;
+    var elapsed = 0;              // сколько прошло с прошлого листания, мс
+    var lastTs = 0;
+    var circ = ring ? 2 * Math.PI * parseFloat(ring.getAttribute('r')) : 0;
 
+    function gapPx() { return parseFloat(getComputedStyle(track).columnGap) || 0; }
     function stepSize() {
       if (!items.length) { return 0; }
-      var gap = parseFloat(getComputedStyle(track).columnGap) || 0;
-      return items[0].getBoundingClientRect().width + gap;
+      return items[0].getBoundingClientRect().width + gapPx();
     }
-    function maxScroll() { return track.scrollWidth - track.clientWidth; }
-    function fits() { return maxScroll() <= 2; }
-
-    /* Сколько карточек видно сразу: на ширину этой «страницы» и сдвигаем (3 на компьютере, 2 на планшете, 1 на телефоне) */
+    /* Сколько карточек видно сразу: на столько и листаем (3 на компьютере, 2 на планшете, 1 на телефоне) */
     function perPage() {
       var s = stepSize();
       if (!s) { return 1; }
-      var gap = parseFloat(getComputedStyle(track).columnGap) || 0;
-      return Math.max(1, Math.round((track.clientWidth + gap) / s));
+      return Math.max(1, Math.round((track.clientWidth + gapPx()) / s));
     }
-    function pageSize() { return stepSize() * perPage(); }
+    function fits() { return total <= perPage(); }
 
+    /* Бесконечная лента: после последней карточки в конец добавлены копии первых,
+       доехав до них, лента мгновенно возвращается на настоящее начало (картинка та же). */
+    function removeClones() {
+      [].slice.call(track.querySelectorAll('[data-clone]')).forEach(function (c) { c.parentNode.removeChild(c); });
+      cloned = false;
+    }
+    function buildClones() {
+      removeClones();
+      var k = perPage();
+      var count = 2 * k - 1;
+      if (fits() || total < 2 * k) { return; } // слишком мало работ: обычная прокрутка с возвратом
+      for (var i = 0; i < count; i++) {
+        var c = track.children[i].cloneNode(true);
+        c.setAttribute('data-clone', '');
+        c.setAttribute('aria-hidden', 'true');
+        if ('inert' in c) { c.inert = true; }
+        [].slice.call(c.querySelectorAll('a, button')).forEach(function (el) { el.tabIndex = -1; });
+        track.appendChild(c);
+      }
+      cloned = true;
+    }
+    function normalize() {
+      if (!cloned) { return; }
+      var s = stepSize();
+      if (!s) { return; }
+      if (Math.round(track.scrollLeft / s) >= total) {
+        var snap = track.style.scrollSnapType;
+        track.style.scrollSnapType = 'none';
+        track.scrollLeft -= total * s;
+        window.requestAnimationFrame(function () { track.style.scrollSnapType = snap; });
+      }
+    }
+    function jump(left) {
+      var snap = track.style.scrollSnapType;
+      track.style.scrollSnapType = 'none';
+      track.scrollLeft = left;
+      window.requestAnimationFrame(function () { track.style.scrollSnapType = snap; });
+    }
     function goTo(left) {
       track.scrollTo({ left: left, behavior: reduceMotion ? 'auto' : 'smooth' });
-      // Счётчик обновляем и после программной прокрутки, не только по событию scroll
-      setTimeout(updateCount, reduceMotion ? 60 : 700);
     }
+
     function forward() {
-      if (track.scrollLeft >= maxScroll() - 2) { goTo(0); } else { goTo(Math.min(maxScroll(), track.scrollLeft + pageSize())); }
+      elapsed = 0;
+      var s = stepSize();
+      var cur = Math.round(track.scrollLeft / s);
+      if (cloned) {
+        goTo((cur + perPage()) * s);
+      } else if (track.scrollLeft >= track.scrollWidth - track.clientWidth - 2) {
+        goTo(0);
+      } else {
+        goTo(Math.min(track.scrollWidth - track.clientWidth, track.scrollLeft + s * perPage()));
+      }
     }
     function back() {
-      if (track.scrollLeft <= 2) { goTo(maxScroll()); } else { goTo(Math.max(0, track.scrollLeft - pageSize())); }
-    }
-
-    function updateCount() {
+      elapsed = 0;
       var s = stepSize();
-      if (!count || !s) { return; }
-      var visible = Math.max(1, Math.round((track.clientWidth + (s - items[0].getBoundingClientRect().width)) / s));
-      var first = Math.min(items.length, Math.round(track.scrollLeft / s) + 1);
-      var last = Math.min(items.length, first + visible - 1);
-      count.textContent = first === last ? first + ' из ' + items.length : first + '–' + last + ' из ' + items.length;
+      var k = perPage();
+      var cur = Math.round(track.scrollLeft / s);
+      if (cloned) {
+        if (cur <= 0) { jump(total * s); cur = total; }
+        goTo(Math.max(0, cur - k) * s);
+      } else if (track.scrollLeft <= 2) {
+        goTo(track.scrollWidth - track.clientWidth);
+      } else {
+        goTo(Math.max(0, track.scrollLeft - s * k));
+      }
     }
 
-    function stop() { if (timer) { clearInterval(timer); timer = null; } }
-    function start() {
-      stop();
-      if (userPaused || hovering || fits() || document.hidden) { return; }
-      timer = setInterval(forward, interval);
+    /* Кружок-таймер: заполняется по часовой стрелке за время до следующего листания */
+    function draw() {
+      if (ring) { ring.style.strokeDashoffset = String(circ * (1 - Math.min(1, elapsed / interval))); }
     }
+    function running() { return !(userPaused || hovering || fits() || document.hidden); }
+    function tick(ts) {
+      window.requestAnimationFrame(tick);
+      var dt = lastTs ? Math.min(ts - lastTs, 100) : 0;
+      lastTs = ts;
+      if (running()) {
+        elapsed += dt;
+        if (elapsed >= interval) { forward(); }
+      }
+      draw();
+    }
+
     function setPlayLabel() {
       if (!playBtn) { return; }
       playBtn.textContent = userPaused ? 'Включить прокрутку' : 'Пауза';
@@ -119,37 +178,44 @@
     }
 
     function refresh() {
+      buildClones();
       var all = fits();
       [prev, next, playBtn].forEach(function (b) { if (b) { b.hidden = all; } });
-      if (count) { count.hidden = all; }
-      updateCount();
-      start();
+      if (timerBox) { timerBox.hidden = all; }
+      jump(0);
+      elapsed = 0;
+      draw();
     }
 
-    if (prev) { prev.addEventListener('click', function () { back(); start(); }); }
-    if (next) { next.addEventListener('click', function () { forward(); start(); }); }
+    if (prev) { prev.addEventListener('click', function () { back(); }); }
+    if (next) { next.addEventListener('click', function () { forward(); }); }
     if (playBtn) {
-      playBtn.addEventListener('click', function () { userPaused = !userPaused; setPlayLabel(); start(); });
+      playBtn.addEventListener('click', function () { userPaused = !userPaused; setPlayLabel(); });
     }
 
-    // Пока человек наводит мышь или работает с клавиатуры, не крутим
-    root.addEventListener('mouseenter', function () { hovering = true; stop(); });
-    root.addEventListener('mouseleave', function () { hovering = false; start(); });
-    root.addEventListener('focusin', function () { hovering = true; stop(); });
-    root.addEventListener('focusout', function () { hovering = false; start(); });
-    track.addEventListener('touchstart', function () { stop(); }, { passive: true });
-    track.addEventListener('touchend', function () { start(); }, { passive: true });
+    // Пока человек наводит мышь, касается или работает с клавиатуры, таймер стоит
+    root.addEventListener('mouseenter', function () { hovering = true; });
+    root.addEventListener('mouseleave', function () { hovering = false; });
+    root.addEventListener('focusin', function () { hovering = true; });
+    root.addEventListener('focusout', function () { hovering = false; });
+    track.addEventListener('touchstart', function () { hovering = true; }, { passive: true });
+    track.addEventListener('touchend', function () { hovering = false; elapsed = 0; }, { passive: true });
 
     var scrollTick = null;
     track.addEventListener('scroll', function () {
-      if (scrollTick) { return; }
-      scrollTick = setTimeout(function () { scrollTick = null; updateCount(); }, 120);
+      if (scrollTick) { clearTimeout(scrollTick); }
+      scrollTick = setTimeout(function () { scrollTick = null; normalize(); }, 140);
     }, { passive: true });
-    window.addEventListener('resize', refresh);
-    document.addEventListener('visibilitychange', start);
+    var resizeTick = null;
+    window.addEventListener('resize', function () {
+      if (resizeTick) { clearTimeout(resizeTick); }
+      resizeTick = setTimeout(refresh, 200);
+    });
 
     setPlayLabel();
     refresh();
+    if (ring) { ring.style.strokeDasharray = String(circ); draw(); }
+    window.requestAnimationFrame(tick);
   }
 
   /* ---------- Кнопка «Наверх»: только на страницах выше экрана, после небольшой прокрутки ---------- */

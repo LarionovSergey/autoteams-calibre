@@ -173,8 +173,12 @@ p { margin: 0 0 1em; max-width: 68ch; }
   border: 1px solid var(--line); border-radius: 2px; padding: .6rem .9rem; cursor: pointer;
 }
 .carousel-ctl button:hover { background: var(--yellow); border-color: var(--yellow); color: var(--on-yellow); }
-.carousel-ctl button[hidden], .car-count[hidden] { display: none; }
-.car-count { color: var(--mute); font-size: .92rem; margin-left: .4rem; }
+.carousel-ctl button[hidden], .car-timer[hidden] { display: none; }
+.car-timer { display: inline-flex; margin-left: .5rem; }
+.car-timer svg { display: block; }
+.car-timer circle { fill: none; stroke-width: 3; }
+.car-timer-bg { stroke: var(--line); }
+.car-timer-fg { stroke: var(--yellow); transform: rotate(-90deg); transform-origin: 50% 50%; }
 .car-play { margin-left: auto; }
 .carousel-track {
   display: flex; gap: var(--gap); overflow-x: auto; scroll-snap-type: x mandatory;
