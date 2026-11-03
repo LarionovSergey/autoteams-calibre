@@ -4,7 +4,7 @@
  */
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'AT_VER', '1.0.14' );
+define( 'AT_VER', '1.0.15' );
 
 require get_template_directory() . '/inc/defaults.php';
 require get_template_directory() . '/inc/cpt.php';
@@ -271,4 +271,23 @@ function at_makes_for_category( $cat_slug = '' ) {
 		return ( $b['count'] <=> $a['count'] ) ?: strcasecmp( $a['term']->name, $b['term']->name );
 	} );
 	return array_values( $out );
+}
+
+/* ---------- Карта перед подвалом ---------- */
+
+/** Адрес карты для вставки: свой из «Контакты и тексты», иначе виджет Яндекс.Карт с меткой на точке сервиса. */
+function at_map_src() {
+	$custom = trim( (string) at_opt( 'map' ) );
+	if ( '' !== $custom ) { return $custom; }
+	$ll = preg_replace( '/[^0-9.,-]/', '', (string) at_opt( 'map_ll' ) );
+	if ( ! preg_match( '/^-?\d+(\.\d+)?,-?\d+(\.\d+)?$/', $ll ) ) { return ''; }
+	return 'https://yandex.ru/map-widget/v1/?ll=' . rawurlencode( $ll ) . '&z=16&pt=' . rawurlencode( $ll . ',pm2ylm' );
+}
+
+/** Ссылка «Построить маршрут» в Яндекс.Картах. */
+function at_route_url() {
+	$ll = preg_replace( '/[^0-9.,-]/', '', (string) at_opt( 'map_ll' ) );
+	$p  = explode( ',', $ll );
+	if ( 2 !== count( $p ) ) { return ''; }
+	return 'https://yandex.ru/maps/?rtext=~' . rawurlencode( $p[1] . ',' . $p[0] ) . '&rtt=auto';
 }

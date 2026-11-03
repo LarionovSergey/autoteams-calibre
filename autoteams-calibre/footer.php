@@ -1,5 +1,17 @@
 <?php if ( ! defined( 'ABSPATH' ) ) { exit; } ?>
 </main>
+<?php if ( at_map_src() ) : ?>
+<section class="find-us" aria-labelledby="find-title">
+	<div class="wrap find-head">
+		<div>
+			<h2 id="find-title">Как нас найти</h2>
+			<p><?php echo esc_html( at_opt( 'address' ) ); ?><br><?php echo esc_html( at_opt( 'hours' ) ); ?></p>
+		</div>
+		<?php if ( at_route_url() ) : ?><a class="btn btn--ghost" href="<?php echo esc_url( at_route_url() ); ?>" target="_blank" rel="noopener">Построить маршрут</a><?php endif; ?>
+	</div>
+	<div class="find-map"><iframe src="<?php echo esc_url( at_map_src() ); ?>" title="Мы на карте" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe></div>
+</section>
+<?php endif; ?>
 <footer class="site-footer">
 	<div class="wrap">
 		<div class="foot-grid">

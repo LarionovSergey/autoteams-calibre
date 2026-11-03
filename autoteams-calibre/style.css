@@ -325,3 +325,11 @@ p { margin: 0 0 1em; max-width: 68ch; }
 /* Плавное появление блоков главной (классы ставит theme.js; без JS всё видно сразу) */
 .reveal { opacity: 0; transform: translateY(28px); transition: opacity .6s ease, transform .7s cubic-bezier(.2, .7, .2, 1); transition-delay: var(--rv-delay, 0ms); }
 .reveal.is-in { opacity: 1; transform: none; }
+
+/* Карта перед подвалом */
+.find-us { background: var(--paper-2); border-top: 1px solid var(--rule); }
+.find-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 1rem 2rem; padding-block: clamp(1.8rem, 4vw, 3rem) 1.4rem; }
+.find-head h2 { margin: 0 0 .4rem; }
+.find-head p { margin: 0; color: var(--ink-2); }
+.find-map { border-top: 3px solid var(--yellow); }
+.find-map iframe { display: block; width: 100%; height: clamp(300px, 38vw, 440px); border: 0; }
