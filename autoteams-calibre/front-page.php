@@ -252,7 +252,7 @@ if ( $makes_n > 0 ) { $stats[] = array( $makes_n, '', 'марок авто в н
 </section>
 <?php endif; ?>
 
-<section class="section contact" id="contact">
+<section class="section section--tint contact" id="contact">
 	<div class="wrap">
 		<div>
 			<h2>Записаться</h2>
