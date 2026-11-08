@@ -4,7 +4,7 @@
  */
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'AT_VER', '1.0.49' );
+define( 'AT_VER', '1.0.50' );
 
 require get_template_directory() . '/inc/defaults.php';
 require get_template_directory() . '/inc/cpt.php';
@@ -346,7 +346,8 @@ function at_cats_for_text( $text ) {
 		'srs'                 => '/srs|кр[аэ]ш|подушк|airbag/iu',
 		'rusifikatsiya'       => '/русифи[кц]|на русском|русск\w+ язык/iu',
 		'korobki'             => '/\bamt\b|пинк|ползущ|прошивк\w*\s+(акпп|коробк|робот)|переключени\w+\s+(передач\s+)?(быстрее|плавн)/iu',
-		'dop-funkcii'         => '/иммобилайзер|istop|i-stop|дистанционн\w+ запуск|кодировк|европейск\w+ регион|качества топлива/iu',
+		'dop-funkcii'         => '/istop|i-stop|дистанционн\w+ запуск|кодировк|европейск\w+ регион|качества топлива/iu',
+		'immo'                => '/иммобилайзер|иммобилизатор|\bimmo\b/iu',
 		'evap'                => '/evap|вентиляци\w+\s+(топливного\s+)?бак|адсорбер/iu',
 	);
 	$out = array();
@@ -356,17 +357,23 @@ function at_cats_for_text( $text ) {
 	return $out;
 }
 
-/** Категория «Отключение EVAP» создаётся автоматически, если её ещё нет. */
-function at_ensure_evap_term() {
-	if ( ! get_term_by( 'slug', 'evap', 'work_cat' ) ) {
-		wp_insert_term( 'Отключение EVAP (вентиляция бака)', 'work_cat', array( 'slug' => 'evap' ) );
+/** Категории «Отключение EVAP» и «Отключение иммобилайзера» создаются автоматически, если их ещё нет. */
+function at_ensure_extra_terms() {
+	$extra = array(
+		'evap' => 'Отключение EVAP (вентиляция бака)',
+		'immo' => 'Отключение иммобилайзера',
+	);
+	foreach ( $extra as $slug => $name ) {
+		if ( ! get_term_by( 'slug', $slug, 'work_cat' ) ) {
+			wp_insert_term( $name, 'work_cat', array( 'slug' => $slug ) );
+		}
 	}
 }
 
 function at_assign_cats( $post_id ) {
 	$post = get_post( $post_id );
 	if ( ! $post ) { return; }
-	at_ensure_evap_term();
+	at_ensure_extra_terms();
 	$slugs = at_cats_for_text( $post->post_title . '. ' . $post->post_content . ' ' . $post->post_excerpt );
 	if ( ! $slugs ) { return; }
 	$ids = array();
@@ -390,7 +397,7 @@ add_action( 'init', function () {
 		at_assign_cats( $id );
 		$p = get_post( $id );
 		$s = at_cats_for_text( $p->post_title . '. ' . $p->post_content . ' ' . $p->post_excerpt );
-		if ( in_array( 'evap', $s, true ) && ! in_array( 'dop-funkcii', $s, true ) ) {
+		if ( ( in_array( 'evap', $s, true ) || in_array( 'immo', $s, true ) ) && ! in_array( 'dop-funkcii', $s, true ) ) {
 			wp_remove_object_terms( $id, 'dop-funkcii', 'work_cat' );
 		}
 	}
