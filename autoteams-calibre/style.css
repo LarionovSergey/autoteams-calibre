@@ -65,6 +65,7 @@ p { margin: 0 0 1em; max-width: 68ch; }
 }
 .btn:hover { background: var(--ink); border-color: var(--ink); color: var(--on-yellow); }
 .btn-ico { flex: none; }
+.btn-img { display: block; height: 1.4rem; width: auto; max-width: 8rem; object-fit: contain; }
 .btn--ghost { background: transparent; color: var(--ink); border-color: var(--line); }
 .btn--ghost:hover { background: var(--yellow); border-color: var(--yellow); color: var(--on-yellow); }
 .btn--block { width: 100%; }

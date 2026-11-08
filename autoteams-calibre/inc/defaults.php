@@ -16,6 +16,8 @@ function at_defaults() {
 		'vk'         => 'https://vk.com/chiptuning24rus',
 		'twogis'     => 'https://2gis.ru/krasnoyarsk/firm/70000001029446232/tab/reviews',
 		'max'        => 'https://max.ru/u/f9LHodD0cOIE8KECaimjOVpyvoHBU-ShDrVjJlmAe_3SUE1j8p1mIrIHoZk',
+		'max_label'  => 'Написать в MAX',
+		'max_img'    => '',
 		'facebook'   => 'https://web.facebook.com/chiptuning24rus/',
 		'instagram'  => 'https://www.instagram.com/autoteams24/',
 		'ok'         => 'https://ok.ru/group/56381148889235',
