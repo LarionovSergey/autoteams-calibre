@@ -4,7 +4,7 @@
  */
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'AT_VER', '1.0.47' );
+define( 'AT_VER', '1.0.48' );
 
 require get_template_directory() . '/inc/defaults.php';
 require get_template_directory() . '/inc/cpt.php';
@@ -326,3 +326,57 @@ function at_soc_icon( $key ) {
 	}
 	return '';
 }
+
+/**
+ * Категории по тексту работы. Если в описании упомянуты, например, чип-тюнинг и отключение EGR,
+ * работа попадает сразу в обе категории. Только добавляет, ничего не снимает.
+ */
+function at_cats_for_text( $text ) {
+	$text = wp_strip_all_tags( $text );
+	$neg  = '/не трогали|не затрагивали|не отключали|не стали|уже (был|была|было|прошива|стоял)|оставили как был/iu';
+	$keep = array();
+	foreach ( preg_split( '/[.!?]+/u', $text ) as $s ) {
+		if ( ! preg_match( $neg, $s ) ) { $keep[] = $s; }
+	}
+	$s     = implode( '. ', $keep );
+	$rules = array(
+		'chip-moshchnost'     => '/чип-?\s?тюнинг|stage\s?\d|(прибавк|добав|прирост)\w*\s+(мощност|момент)|мощност\w*\s+и\s+момент|\d+\s?л\.\s?с|\+\s?\d+\s?[–-]?\s?\d*\s?%/iu',
+		'euro2-katalizator'   => '/евро-?\s?2|катализатор|лямбд|кислородн|p04[23]\d/iu',
+		'egr-dpf-scr'         => '/\begr\b|егр|dpf|дпф|сажев|adblue|мочевин|\bscr\b|вихревы\w+ заслонк/iu',
+		'srs'                 => '/srs|кр[аэ]ш|подушк|airbag/iu',
+		'rusifikatsiya'       => '/русифи[кц]|на русском|русск\w+ язык/iu',
+		'korobki'             => '/\bamt\b|пинк|ползущ|прошивк\w*\s+(акпп|коробк|робот)|переключени\w+\s+(передач\s+)?(быстрее|плавн)/iu',
+		'dop-funkcii'         => '/иммобилайзер|istop|i-stop|дистанционн\w+ запуск|кодировк|европейск\w+ регион|качества топлива|evap/iu',
+	);
+	$out = array();
+	foreach ( $rules as $slug => $re ) {
+		if ( preg_match( $re, $s ) ) { $out[] = $slug; }
+	}
+	return $out;
+}
+
+function at_assign_cats( $post_id ) {
+	$post = get_post( $post_id );
+	if ( ! $post ) { return; }
+	$slugs = at_cats_for_text( $post->post_title . '. ' . $post->post_content . ' ' . $post->post_excerpt );
+	if ( ! $slugs ) { return; }
+	$ids = array();
+	foreach ( $slugs as $slug ) {
+		$t = get_term_by( 'slug', $slug, 'work_cat' );
+		if ( $t && ! is_wp_error( $t ) ) { $ids[] = (int) $t->term_id; }
+	}
+	if ( $ids ) { wp_set_object_terms( $post_id, $ids, 'work_cat', true ); }
+}
+
+add_action( 'save_post_work', function ( $post_id, $post ) {
+	if ( wp_is_post_revision( $post_id ) || 'auto-draft' === $post->post_status ) { return; }
+	at_assign_cats( $post_id );
+}, 25, 2 );
+
+/** Один раз после обновления темы: дополняет категории у уже существующих работ. */
+add_action( 'init', function () {
+	if ( get_option( 'at_cats_synced' ) === AT_VER ) { return; }
+	$ids = get_posts( array( 'post_type' => 'work', 'post_status' => array( 'publish', 'draft', 'pending', 'private' ), 'fields' => 'ids', 'nopaging' => true ) );
+	foreach ( $ids as $id ) { at_assign_cats( $id ); }
+	update_option( 'at_cats_synced', AT_VER, false );
+}, 35 );
