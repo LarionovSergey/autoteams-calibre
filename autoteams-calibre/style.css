@@ -190,12 +190,18 @@ p { margin: 0 0 1em; max-width: 68ch; }
 .prices p { grid-column: 1 / -1; margin: 0; color: var(--ink-2); font-size: .98rem; }
 
 /* Ступени */
-.stages { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--line); background: var(--paper-2); }
+.stages { display: grid; grid-template-columns: repeat(5, 1fr); border: 1px solid var(--line); background: var(--paper-2); }
 .stage { padding: 1.4rem 1.5rem 1.6rem; border-left: 1px solid var(--line); }
 .stage:first-child { border-left: 0; }
 .stage h3 { font-size: 2rem; margin-bottom: .2em; }
 .stage .need { font-weight: 600; color: var(--teal); margin-bottom: .6rem; }
 .stage p { font-size: .98rem; color: var(--ink-2); margin: 0; }
+.stage:nth-child(2) h3 { font-size: 1.55rem; line-height: 1.2; padding-top: .3rem; }
+@media (max-width: 1150px) {
+  .stages { grid-template-columns: 1fr; }
+  .stage { border-left: 0; border-top: 1px solid var(--line); }
+  .stage:first-child { border-top: 0; }
+}
 /* Работы */
 .works { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--gap); }
 .work { display: flex; flex-direction: column; background: var(--paper-2); border: 1px solid var(--line); border-radius: 2px; overflow: hidden; transition: border-color .2s; }
