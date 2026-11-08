@@ -4,7 +4,7 @@
  */
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'AT_VER', '1.0.48' );
+define( 'AT_VER', '1.0.49' );
 
 require get_template_directory() . '/inc/defaults.php';
 require get_template_directory() . '/inc/cpt.php';
@@ -346,7 +346,8 @@ function at_cats_for_text( $text ) {
 		'srs'                 => '/srs|кр[аэ]ш|подушк|airbag/iu',
 		'rusifikatsiya'       => '/русифи[кц]|на русском|русск\w+ язык/iu',
 		'korobki'             => '/\bamt\b|пинк|ползущ|прошивк\w*\s+(акпп|коробк|робот)|переключени\w+\s+(передач\s+)?(быстрее|плавн)/iu',
-		'dop-funkcii'         => '/иммобилайзер|istop|i-stop|дистанционн\w+ запуск|кодировк|европейск\w+ регион|качества топлива|evap/iu',
+		'dop-funkcii'         => '/иммобилайзер|istop|i-stop|дистанционн\w+ запуск|кодировк|европейск\w+ регион|качества топлива/iu',
+		'evap'                => '/evap|вентиляци\w+\s+(топливного\s+)?бак|адсорбер/iu',
 	);
 	$out = array();
 	foreach ( $rules as $slug => $re ) {
@@ -355,9 +356,17 @@ function at_cats_for_text( $text ) {
 	return $out;
 }
 
+/** Категория «Отключение EVAP» создаётся автоматически, если её ещё нет. */
+function at_ensure_evap_term() {
+	if ( ! get_term_by( 'slug', 'evap', 'work_cat' ) ) {
+		wp_insert_term( 'Отключение EVAP (вентиляция бака)', 'work_cat', array( 'slug' => 'evap' ) );
+	}
+}
+
 function at_assign_cats( $post_id ) {
 	$post = get_post( $post_id );
 	if ( ! $post ) { return; }
+	at_ensure_evap_term();
 	$slugs = at_cats_for_text( $post->post_title . '. ' . $post->post_content . ' ' . $post->post_excerpt );
 	if ( ! $slugs ) { return; }
 	$ids = array();
@@ -377,6 +386,13 @@ add_action( 'save_post_work', function ( $post_id, $post ) {
 add_action( 'init', function () {
 	if ( get_option( 'at_cats_synced' ) === AT_VER ) { return; }
 	$ids = get_posts( array( 'post_type' => 'work', 'post_status' => array( 'publish', 'draft', 'pending', 'private' ), 'fields' => 'ids', 'nopaging' => true ) );
-	foreach ( $ids as $id ) { at_assign_cats( $id ); }
+	foreach ( $ids as $id ) {
+		at_assign_cats( $id );
+		$p = get_post( $id );
+		$s = at_cats_for_text( $p->post_title . '. ' . $p->post_content . ' ' . $p->post_excerpt );
+		if ( in_array( 'evap', $s, true ) && ! in_array( 'dop-funkcii', $s, true ) ) {
+			wp_remove_object_terms( $id, 'dop-funkcii', 'work_cat' );
+		}
+	}
 	update_option( 'at_cats_synced', AT_VER, false );
 }, 35 );
