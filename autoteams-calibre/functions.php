@@ -4,7 +4,7 @@
  */
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'AT_VER', '1.0.37' );
+define( 'AT_VER', '1.0.38' );
 
 require get_template_directory() . '/inc/defaults.php';
 require get_template_directory() . '/inc/cpt.php';
@@ -306,4 +306,23 @@ function at_route_url() {
 	$p  = explode( ',', $ll );
 	if ( 2 !== count( $p ) ) { return ''; }
 	return 'https://yandex.ru/maps/?rtext=~' . rawurlencode( $p[1] . ',' . $p[0] ) . '&rtt=auto';
+}
+
+
+/** Значки соцсетей для подвала (линейные, цвет берут из текста ссылки). */
+function at_soc_icon( $key ) {
+	$a = 'viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"';
+	switch ( $key ) {
+		case 'vk':
+			return '<svg ' . $a . '><path d="M3 7.5c.4 5.5 3.5 8.7 8.5 8.7h1.1v-3.1c1.9.2 3.3 1.6 3.9 3.1H19c-.8-2.3-2.4-3.6-3.4-4.1 1-.6 2.4-2 2.8-4.6h-2.4c-.4 1.7-1.7 3.1-3.4 3.3V7.5H9.3v5.6C7.5 12.7 5.4 10.8 5.3 7.5z"/></svg>';
+		case 'fb':
+			return '<svg ' . $a . '><path d="M14.5 21v-8h2.6l.4-3h-3V8.2c0-.9.3-1.5 1.6-1.5h1.5V4.1c-.3 0-1.2-.1-2.2-.1-2.3 0-3.9 1.4-3.9 4v2H9v3h2.5v8z"/></svg>';
+		case 'wa':
+			return '<svg ' . $a . '><path d="M12 3.2a8.8 8.8 0 0 0-7.6 13.2L3.2 20.8l4.5-1.2A8.8 8.8 0 1 0 12 3.2z"/><path d="M9.2 8.2c-.3.4-.5 1-.2 1.8.6 1.6 2.6 3.7 4.5 4.3.8.3 1.5 0 1.9-.5l.3-.8-1.9-1-.8.8c-.9-.4-1.9-1.3-2.3-2.3l.7-.8-.9-1.9z"/></svg>';
+		case 'ig':
+			return '<svg ' . $a . '><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r=".6" fill="currentColor"/></svg>';
+		case 'ok':
+			return '<svg ' . $a . '><circle cx="12" cy="7.2" r="3.2"/><path d="M7.2 11.8c2.9 2 6.7 2 9.6 0M12 15v.2M8.8 20.2 12 16.4l3.2 3.8"/></svg>';
+	}
+	return '';
 }

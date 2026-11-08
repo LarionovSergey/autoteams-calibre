@@ -28,11 +28,22 @@
 			</div>
 			<div>
 				<h2>Мы в сети</h2>
-				<ul>
-					<?php if ( at_opt( 'vk' ) ) : ?><li><a href="<?php echo esc_url( at_opt( 'vk' ) ); ?>" rel="noopener">ВКонтакте</a></li><?php endif; ?>
-					<?php if ( at_opt( 'facebook' ) ) : ?><li><a href="<?php echo esc_url( at_opt( 'facebook' ) ); ?>" rel="noopener">Facebook</a></li><?php endif; ?>
-					<?php if ( at_opt( 'privacy' ) ) : ?><li><a href="<?php echo esc_url( at_opt( 'privacy' ) ); ?>">Политика конфиденциальности</a></li><?php endif; ?>
+				<?php
+				$wa  = preg_replace( '/\D/', '', (string) at_opt( 'whatsapp' ) );
+				$soc = array(
+					array( 'vk', 'ВКонтакте', at_opt( 'vk' ) ),
+					array( 'fb', 'Facebook', at_opt( 'facebook' ) ),
+					array( 'wa', 'WhatsApp', $wa ? 'https://api.whatsapp.com/send?phone=' . $wa : '' ),
+					array( 'ig', 'Instagram', at_opt( 'instagram' ) ),
+					array( 'ok', 'Одноклассники', at_opt( 'ok' ) ),
+				);
+				?>
+				<ul class="soc">
+					<?php foreach ( $soc as $s ) : if ( ! $s[2] ) { continue; } ?>
+						<li><a href="<?php echo esc_url( $s[2] ); ?>" target="_blank" rel="noopener" aria-label="<?php echo esc_attr( $s[1] ); ?>" title="<?php echo esc_attr( $s[1] ); ?>"><?php echo at_soc_icon( $s[0] ); // phpcs:ignore WordPress.Security.EscapeOutput ?></a></li>
+					<?php endforeach; ?>
 				</ul>
+				<?php if ( at_opt( 'privacy' ) ) : ?><p class="soc-note"><a href="<?php echo esc_url( at_opt( 'privacy' ) ); ?>">Политика конфиденциальности</a></p><?php endif; ?>
 			</div>
 		</div>
 		<div class="copy">© <?php echo esc_html( gmdate( 'Y' ) ); ?> <?php bloginfo( 'name' ); ?></div>

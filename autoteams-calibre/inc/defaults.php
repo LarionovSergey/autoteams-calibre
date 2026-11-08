@@ -13,9 +13,11 @@ function at_defaults() {
 		// Адрес на старом сайте и в Facebook разный. Уточните и поправьте в настройках.
 		'address'    => 'г. Красноярск, ул. С. Лазо, 12Д',
 		'hours'      => 'Пн–Пт 10:00–21:00, Сб 10:00–19:00, Вс выходной',
-		'vk'         => 'https://vk.ru/chiptuning24rus',
+		'vk'         => 'https://vk.com/chiptuning24rus',
 		'twogis'     => 'https://2gis.ru/krasnoyarsk/firm/70000001029446232/tab/reviews',
-		'facebook'   => 'https://www.facebook.com/share/1EpG9soemt/',
+		'facebook'   => 'https://web.facebook.com/chiptuning24rus/',
+		'instagram'  => 'https://www.instagram.com/autoteams24/',
+		'ok'         => 'https://ok.ru/group/56381148889235',
 		'map'        => '',
 		'map_org'    => '93333581437', // номер организации в Яндекс Картах: кнопка «Построить маршрут» открывает карточку
 		'map_ll'     => '92.957069,56.046344', // долгота,широта метки на карте (ул. С. Лазо, 12Д, чуть выше и левее значков PowerCarSystems и Автотеамс)
