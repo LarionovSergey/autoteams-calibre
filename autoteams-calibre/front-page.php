@@ -38,7 +38,7 @@ $status  = isset( $_GET['lead'] ) ? sanitize_key( wp_unslash( $_GET['lead'] ) ) 
 			<p class="hero-lead"><?php echo esc_html( at_opt( 'hero_text' ) ); ?></p>
 			<div class="hero-actions">
 				<a class="btn" href="#contact">Узнать стоимость</a>
-				<?php if ( at_opt( 'max' ) ) : ?><a class="btn btn--ghost" href="<?php echo esc_url( at_opt( 'max' ) ); ?>" target="_blank" rel="noopener">Написать в MAX</a><?php elseif ( at_wa() ) : ?><a class="btn btn--ghost" href="<?php echo esc_url( at_wa() ); ?>" rel="noopener">Написать в WhatsApp</a><?php endif; ?>
+				<?php if ( at_opt( 'max' ) ) : ?><a class="btn btn--ghost" href="<?php echo esc_url( at_opt( 'max' ) ); ?>" target="_blank" rel="noopener"><svg class="btn-ico" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 4.5h14a1.5 1.5 0 0 1 1.5 1.5v9a1.5 1.5 0 0 1-1.5 1.5h-7.5L7 20v-3.5H5A1.5 1.5 0 0 1 3.5 15V6A1.5 1.5 0 0 1 5 4.5z"/><path d="M8 9.5h8M8 12.5h5"/></svg><span>Написать в MAX</span></a><?php elseif ( at_wa() ) : ?><a class="btn btn--ghost" href="<?php echo esc_url( at_wa() ); ?>" rel="noopener">Написать в WhatsApp</a><?php endif; ?>
 			</div>
 		</div>
 
