@@ -38,7 +38,7 @@ $status  = isset( $_GET['lead'] ) ? sanitize_key( wp_unslash( $_GET['lead'] ) ) 
 			<p class="hero-lead"><?php echo esc_html( at_opt( 'hero_text' ) ); ?></p>
 			<div class="hero-actions">
 				<a class="btn" href="#contact">Узнать стоимость</a>
-				<?php if ( at_wa() ) : ?><a class="btn btn--ghost" href="<?php echo esc_url( at_wa() ); ?>" rel="noopener">Написать в WhatsApp</a><?php endif; ?>
+				<?php if ( at_opt( 'max' ) ) : ?><a class="btn btn--ghost" href="<?php echo esc_url( at_opt( 'max' ) ); ?>" target="_blank" rel="noopener">Написать в MAX</a><?php elseif ( at_wa() ) : ?><a class="btn btn--ghost" href="<?php echo esc_url( at_wa() ); ?>" rel="noopener">Написать в WhatsApp</a><?php endif; ?>
 			</div>
 		</div>
 

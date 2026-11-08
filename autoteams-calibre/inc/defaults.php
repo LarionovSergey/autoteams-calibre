@@ -15,6 +15,7 @@ function at_defaults() {
 		'hours'      => 'Пн–Пт 10:00–21:00, Сб 10:00–19:00, Вс выходной',
 		'vk'         => 'https://vk.com/chiptuning24rus',
 		'twogis'     => 'https://2gis.ru/krasnoyarsk/firm/70000001029446232/tab/reviews',
+		'max'        => 'https://max.ru/u/f9LHodD0cOIE8KECaimjOVpyvoHBU-ShDrVjJlmAe_3SUE1j8p1mIrIHoZk',
 		'facebook'   => 'https://web.facebook.com/chiptuning24rus/',
 		'instagram'  => 'https://www.instagram.com/autoteams24/',
 		'ok'         => 'https://ok.ru/group/56381148889235',
