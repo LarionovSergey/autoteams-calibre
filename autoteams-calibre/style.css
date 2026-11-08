@@ -196,7 +196,6 @@ p { margin: 0 0 1em; max-width: 68ch; }
 .stage h3 { font-size: 2rem; margin-bottom: .2em; }
 .stage .need { font-weight: 600; color: var(--teal); margin-bottom: .6rem; }
 .stage p { font-size: .98rem; color: var(--ink-2); margin: 0; }
-.stage:nth-child(2) h3 { font-size: 1.55rem; line-height: 1.2; padding-top: .3rem; }
 /* Работы */
 .works { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--gap); }
 .work { display: flex; flex-direction: column; background: var(--paper-2); border: 1px solid var(--line); border-radius: 2px; overflow: hidden; transition: border-color .2s; }
